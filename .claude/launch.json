@@ -1,0 +1,54 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173,
+      "autoPort": true
+    },
+    {
+      "name": "blog",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:\\liubc\\blog", "run", "dev"],
+      "port": 5174,
+      "autoPort": true
+    },
+    {
+      "name": "pan",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:\\liubc\\pan", "run", "dev"],
+      "port": 5175,
+      "autoPort": true
+    },
+    {
+      "name": "music",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:\\liubc\\music", "run", "dev"],
+      "port": 5176,
+      "autoPort": true
+    },
+    {
+      "name": "start",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:\\liubc\\start", "run", "dev"],
+      "port": 5177,
+      "autoPort": true
+    },
+    {
+      "name": "navsite",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:\\liubc\\nav", "run", "dev"],
+      "port": 5178,
+      "autoPort": true
+    },
+    {
+      "name": "lab",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:\\liubc\\lab", "run", "dev"],
+      "port": 5179,
+      "autoPort": true
+    }
+  ]
+}
