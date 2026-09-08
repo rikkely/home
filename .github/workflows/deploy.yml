@@ -1,0 +1,84 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.repository }}
+  cancel-in-progress: false
+
+env:
+  PROJECT: home
+
+jobs:
+  deploy:
+    # 完成服务器安装和密钥配置后再启用，首次推送不会直接发布。
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        env:
+          VITE_API_MODE: live
+          VITE_API_BASE: /api
+          VITE_API_FALLBACK_TO_MOCK: 'false'
+        run: npm run build
+
+      - name: Package release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$PROJECT" == lab ]]; then
+            tar --exclude='server/*.test.js' -czf "$RUNNER_TEMP/release.tar.gz" dist package.json server
+          else
+            tar -czf "$RUNNER_TEMP/release.tar.gz" dist
+          fi
+
+      - name: Upload and publish
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?请配置 SSH_HOST}"
+          : "${SSH_PRIVATE_KEY:?请配置 SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?请配置 SSH_KNOWN_HOSTS}"
+          [[ "$SSH_HOST" =~ ^[A-Za-z0-9][A-Za-z0-9.:-]*$ ]] || { echo 'SSH_HOST 必须是主机名或 IP，不能含用户名、协议和路径。'; exit 1; }
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] && (( 10#$SSH_PORT >= 1 && 10#$SSH_PORT <= 65535 )) || { echo 'SSH_PORT 不合法。'; exit 1; }
+          ssh_dir="$RUNNER_TEMP/aurora-ssh"
+          install -d -m 700 "$ssh_dir"
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$ssh_dir/key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > "$ssh_dir/known_hosts"
+          chmod 600 "$ssh_dir/key" "$ssh_dir/known_hosts"
+          ssh-keygen -y -P '' -f "$ssh_dir/key" > /dev/null
+          ssh -T -p "$SSH_PORT" -i "$ssh_dir/key" \
+            -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=$ssh_dir/known_hosts" \
+            -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
+            "aurora-deploy@$SSH_HOST" "/usr/local/bin/aurora-publish $PROJECT $GITHUB_SHA" \
+            < "$RUNNER_TEMP/release.tar.gz"
+
+      - name: Remove temporary credentials
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/aurora-ssh"
