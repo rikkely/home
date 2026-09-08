@@ -1,40 +1,46 @@
 import { ref } from 'vue'
 
-// 当前正在「建立链接」的目标（点击导航项时触发数据流过场）
 export const linking = ref(null)
+let navigationTimer
+let resetTimer
 
-// 判断是否为「站内链接」：
-//   · 以 / 或 ./ 开头的路径（如 /blog/）
-//   · 或与当前页面同域名的完整地址（如 https://你的域名/lab/）
-// 站内 → 当前标签页跳转（跟随当前域名，沉浸式「进入」子站）
-// 站外 → 新标签页打开（保留主页）
-function isInternalUrl(url) {
-  if (/^\.?\//.test(url)) return true
+export function isInternalUrl(value) {
   try {
-    return new URL(url, location.href).origin === location.origin
-  } catch (e) {
+    const url = new URL(value, location.href)
+    return ['http:', 'https:'].includes(url.protocol) && url.origin === location.origin
+  } catch {
     return false
   }
 }
 
-export function launchLink(url, name) {
+function resetLink() {
+  clearTimeout(navigationTimer)
+  clearTimeout(resetTimer)
+  linking.value = null
+}
+
+export function launchLink(url, name, event) {
+  // 保留浏览器原生的新标签页和外部协议处理，避免延迟弹窗被拦截。
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  if (!isInternalUrl(url)) return
+  const target = new URL(url, location.href)
+  if (target.pathname === location.pathname && target.search === location.search) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  event.preventDefault()
   if (linking.value) return
-  linking.value = { url, name }
-  const internal = isInternalUrl(url)
-  // 过场进行到尾声时再真正跳转
-  setTimeout(() => {
-    try {
-      if (internal) {
-        location.href = url
-      } else {
-        window.open(url, '_blank', 'noopener')
-      }
-    } catch (e) {
-      location.href = url
-    }
-  }, 720)
-  // 收场（站内跳转时页面已在卸载，这里仅对站外/异常情况生效）
-  setTimeout(() => {
-    linking.value = null
-  }, 1050)
+  linking.value = { url: target.href, name }
+  navigationTimer = setTimeout(() => location.assign(target.href), 200)
+  resetTimer = setTimeout(resetLink, 1500)
+}
+
+// 后退缓存可能保留离开时的遮罩，恢复页面时必须清理。
+window.addEventListener('pageshow', resetLink)
+window.addEventListener('pagehide', resetLink)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    resetLink()
+    window.removeEventListener('pageshow', resetLink)
+    window.removeEventListener('pagehide', resetLink)
+  })
 }

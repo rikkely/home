@@ -5,9 +5,10 @@
  *  改完后 `npm run build`，把 dist/ 丢到任意静态服务器即可。
  */
 
-// 头像：放在 src/assets/images/avatar.png，换图直接替换该文件；
+// 头像：src/assets/images/avatar.jpg（由 1076px 原图压到 360px，仅 ~26KB，移动端更快）。
+// 换图直接替换该文件；想用原始大图可改回 './assets/images/avatar.png'。
 // 也可改成网络地址字符串，如 avatar: 'https://...'
-import avatar from './assets/images/avatar.png'
+import avatar from './assets/images/avatar.jpg'
 
 export default {
   /* ---------------- 基本信息 ---------------- */

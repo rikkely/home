@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
 import config from './config.js'
+import { useBoot } from './composables/useBoot.js'
 import { useSystemStats } from './composables/useSystemStats.js'
 import { useTheme } from './composables/useTheme.js'
 
@@ -31,16 +31,7 @@ if (!fav.parentNode) document.head.appendChild(fav)
 
 const { fps, uptime } = useSystemStats()
 
-// 阶段：加载页 → 开机自检 → 控制台
-// loaderMounted 在 boot 淡入覆盖之后才卸载，保证全程无「只剩背景」的空档
-const stage = ref('loading')
-const loaderMounted = ref(true)
-const onLoaderDone = () => {
-  stage.value = 'boot'
-  // 自检画面在 ~0.45s 内淡入覆盖加载页后，再卸载加载页（确定性，不依赖过渡事件）
-  setTimeout(() => { loaderMounted.value = false }, 520)
-}
-const onBootDone = () => { stage.value = 'ready' }
+const { stage, loaderMounted, onLoaderDone, onBootDone } = useBoot()
 
 const f = config.footer || {}
 const year = new Date().getFullYear()
@@ -48,6 +39,8 @@ const year = new Date().getFullYear()
 
 <template>
   <BackgroundScene />
+
+  <button v-if="stage !== 'ready'" class="skip-intro" @click="onBootDone">跳过动画 →</button>
 
   <!-- 加载页保持不透明，直到自检画面在它上方淡入覆盖后再卸载 -->
   <LoadingScreen v-if="loaderMounted" @done="onLoaderDone" />
@@ -89,6 +82,7 @@ const year = new Date().getFullYear()
                 :class="{ 'is-on': active === key }"
                 :style="{ '--sw': p.a }"
                 :title="p.label"
+                :aria-label="`切换主题：${p.label}`"
                 @click="setTheme(key)"
               />
             </span>
@@ -130,6 +124,18 @@ const year = new Date().getFullYear()
 </template>
 
 <style scoped>
+.skip-intro {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1100;
+  padding: 10px 16px;
+  color: var(--text);
+  background: var(--bg-0);
+  border: 1px solid var(--accent-a);
+  border-radius: 6px;
+}
+
 .console {
   position: fixed;
   inset: 0;

@@ -20,6 +20,7 @@ const LINES = [
 
 const visible = ref(0)
 let timer = null
+let finishTimer = null
 let done = false
 
 const finish = () => {
@@ -40,11 +41,14 @@ onMounted(() => {
     visible.value += 1
     if (visible.value >= LINES.length) {
       clearInterval(timer)
-      setTimeout(finish, 520)
+      finishTimer = setTimeout(finish, 180)
     }
   }, 95)
 })
-onUnmounted(() => clearInterval(timer))
+onUnmounted(() => {
+  clearInterval(timer)
+  clearTimeout(finishTimer)
+})
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import config from '../config.js'
 
 const emit = defineEmits(['done'])
@@ -7,6 +7,7 @@ const emit = defineEmits(['done'])
 const progress = ref(0)
 const ignited = ref(false)
 const site = config.site
+let timer
 
 // 一段随机会话 ID，纯装饰（科幻味）
 const sid = Math.random().toString(16).slice(2, 8).toUpperCase()
@@ -42,15 +43,16 @@ onMounted(() => {
     progress.value = steps[i]
     i += 1
     if (i < steps.length) {
-      setTimeout(advance, 180 + Math.random() * 200)
+      timer = setTimeout(advance, 100)
     } else {
       // 充能到 100% —— 点火！闪一下再交棒给自检画面
       ignited.value = true
-      setTimeout(() => emit('done'), 680)
+      timer = setTimeout(() => emit('done'), 240)
     }
   }
-  setTimeout(advance, 260)
+  timer = setTimeout(advance, 100)
 })
+onUnmounted(() => clearTimeout(timer))
 </script>
 
 <template>

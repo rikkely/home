@@ -121,7 +121,7 @@ watch(linking, (v) => {
   width: 0;
   background: linear-gradient(90deg, var(--accent-a), var(--accent-b), var(--accent-c));
   box-shadow: 0 0 12px var(--accent-a);
-  animation: load 0.95s var(--ease-out) forwards;
+  animation: load 0.2s var(--ease-out) forwards;
 }
 @keyframes load {
   to {
@@ -143,7 +143,7 @@ watch(linking, (v) => {
 /* enter / leave */
 .ds-enter-active,
 .ds-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.12s ease;
 }
 .ds-enter-from,
 .ds-leave-to {

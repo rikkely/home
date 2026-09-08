@@ -4,7 +4,7 @@ import config from '../config.js'
 import { socialIcons } from '../assets/media.js'
 import IconBase from './IconBase.vue'
 import { usePointer } from '../composables/usePointer.js'
-import { launchLink } from '../composables/useLink.js'
+import { launchLink, isInternalUrl } from '../composables/useLink.js'
 
 defineProps({ delay: { type: Number, default: 0 } })
 const links = config.links || []
@@ -53,9 +53,9 @@ const hasImg = (name) => !!socialIcons[name]
             class="nav__item"
             :style="{ '--i': i }"
             :href="l.url"
-            target="_blank"
+            :target="isInternalUrl(l.url) ? '_self' : '_blank'"
             rel="noopener"
-            @click.prevent="launchLink(l.url, l.name)"
+            @click="launchLink(l.url, l.name, $event)"
           >
             <span class="nav__bar" />
             <span class="nav__icon">

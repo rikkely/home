@@ -27,6 +27,10 @@ const scenes = computed(() =>
 )
 
 const active = ref(0)
+// 已就绪可显示的场景索引。渐变是纯 CSS、无需网络，因此无所谓；
+// 图片模式下只有「加载完成」的图片才会被赋上 background-image，
+// 这样浏览器首屏只会请求第 1 张，其余按需逐张加载（移动端流量大幅降低）。
+const loaded = ref(new Set([0]))
 let timer = null
 
 const { x, y } = usePointer()
@@ -37,16 +41,42 @@ const orbParallax = computed(() => ({
   transform: `translate(${x.value * 26}px, ${y.value * 26}px)`
 }))
 
-const layerStyle = (scene) =>
-  useImages.value
+const isReady = (i) => !useImages.value || loaded.value.has(i)
+const layerStyle = (scene, i) => {
+  // 未就绪 → 不设置背景图，浏览器不会去下载这张图
+  if (!isReady(i)) return {}
+  return useImages.value
     ? { backgroundImage: `url("${scene}")` }
     : { backgroundImage: scene }
+}
+
+function markLoaded(i) {
+  if (loaded.value.has(i)) return
+  const s = new Set(loaded.value)
+  s.add(i)
+  loaded.value = s
+}
+
+// 先把下一张预加载好，再切换显示，避免淡入时图片还没下好导致「先黑后跳」
+function preloadThenSwitch(i) {
+  if (!useImages.value || loaded.value.has(i)) {
+    active.value = i
+    return
+  }
+  const img = new Image()
+  img.onload = img.onerror = () => {
+    markLoaded(i)
+    active.value = i
+  }
+  img.src = scenes.value[i]
+}
 
 onMounted(() => {
   const interval = config.background?.interval || 11000
   if (scenes.value.length > 1) {
     timer = setInterval(() => {
-      active.value = (active.value + 1) % scenes.value.length
+      const next = (active.value + 1) % scenes.value.length
+      preloadThenSwitch(next)
     }, interval)
   }
 })
@@ -61,7 +91,7 @@ onUnmounted(() => clearInterval(timer))
         :key="i"
         class="bg__layer"
         :class="{ 'is-active': i === active }"
-        :style="layerStyle(scene)"
+        :style="layerStyle(scene, i)"
       />
     </div>
 
@@ -191,6 +221,19 @@ onUnmounted(() => clearInterval(timer))
   inset: 0;
   opacity: 0.05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* 移动端降负载：光球的大半径模糊 + screen 混合在 X5/微信内核里很吃 GPU，
+   缩小模糊半径、去掉混合与噪点，滚动与首帧都会明显更顺。 */
+@media (max-width: 640px) {
+  .orb {
+    filter: blur(34px);
+    opacity: 0.38;
+    mix-blend-mode: normal;
+  }
+  .bg__grain {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
