@@ -41,9 +41,9 @@ onMounted(() => {
     visible.value += 1
     if (visible.value >= LINES.length) {
       clearInterval(timer)
-      finishTimer = setTimeout(finish, 180)
+      finishTimer = setTimeout(finish, 140)
     }
-  }, 95)
+  }, 75)
 })
 onUnmounted(() => {
   clearInterval(timer)
@@ -102,11 +102,14 @@ onUnmounted(() => {
   position: relative;
   width: min(560px, 88vw);
   font-family: var(--font-mono);
-  border: 1px solid color-mix(in srgb, var(--accent-a) 30%, transparent);
-  box-shadow: 0 0 40px -8px color-mix(in srgb, var(--accent-a) 45%, transparent);
-  background: rgba(6, 10, 22, 0.5);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-a) 28%, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.8),
+    0 0 40px -12px color-mix(in srgb, var(--accent-a) 38%, transparent);
+  background: rgba(8, 13, 28, 0.72);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  overflow: hidden;
 }
 .boot__bar {
   display: flex;

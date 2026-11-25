@@ -36,21 +36,21 @@ function sparkStyle(n) {
 }
 
 onMounted(() => {
-  // 脚本化的进度，手感比真实加载更顺滑
-  const steps = [18, 37, 52, 68, 81, 93, 100]
+  // 脚本化的进度，手感顺滑且更快进入座舱
+  const steps = [20, 44, 66, 86, 100]
   let i = 0
   const advance = () => {
     progress.value = steps[i]
     i += 1
     if (i < steps.length) {
-      timer = setTimeout(advance, 100)
+      timer = setTimeout(advance, 80)
     } else {
       // 充能到 100% —— 点火！闪一下再交棒给自检画面
       ignited.value = true
-      timer = setTimeout(() => emit('done'), 240)
+      timer = setTimeout(() => emit('done'), 210)
     }
   }
-  timer = setTimeout(advance, 100)
+  timer = setTimeout(advance, 80)
 })
 onUnmounted(() => clearTimeout(timer))
 </script>

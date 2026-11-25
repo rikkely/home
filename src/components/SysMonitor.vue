@@ -51,31 +51,33 @@ const { fps, uptime } = useSystemStats()
 .sm {
   position: fixed;
   right: 18px;
-  bottom: 16px;
+  bottom: 18px;
   z-index: 45;
   width: 158px;
-  padding: 11px 12px 10px;
+  padding: 12px 12px 10px;
   pointer-events: none;
   font-family: var(--font-mono);
+  border-radius: 14px;
+  background: linear-gradient(155deg, rgba(10, 15, 30, 0.68), rgba(7, 11, 22, 0.48));
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  box-shadow: 0 16px 36px -16px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  overflow: hidden;
   opacity: 0.92;
 }
 .sm__scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(155deg, rgba(7, 11, 24, 0.55), rgba(7, 11, 24, 0.2));
-  -webkit-backdrop-filter: blur(7px);
-  backdrop-filter: blur(7px);
-  -webkit-mask: radial-gradient(140% 130% at 28% 18%, #000 52%, transparent 100%);
-  mask: radial-gradient(140% 130% at 28% 18%, #000 52%, transparent 100%);
+  display: none;
 }
 .sm__br {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 9px;
+  height: 9px;
   border: 0 solid color-mix(in srgb, var(--accent-a) 55%, transparent);
 }
-.sm__br--tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
-.sm__br--br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+.sm__br--tl { top: 6px; left: 6px; border-top-width: 1.5px; border-left-width: 1.5px; border-top-left-radius: 3px; }
+.sm__br--br { bottom: 6px; right: 6px; border-bottom-width: 1.5px; border-right-width: 1.5px; border-bottom-right-radius: 3px; }
 
 .sm__head {
   position: relative;
@@ -218,7 +220,7 @@ const { fps, uptime } = useSystemStats()
 }
 
 /* 仅在足够宽的屏幕显示，让它落在网格右侧留白里、不遮挡内容 */
-@media (max-width: 1440px) {
+@media (max-width: 1480px) {
   .sm {
     display: none;
   }

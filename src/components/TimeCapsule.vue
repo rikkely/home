@@ -15,7 +15,7 @@ const CODES = ['DAY', 'WEEK', 'MONTH', 'YEAR']
         <div class="tl__head">
           <span class="tl__code">{{ CODES[i] }}</span>
           <span class="tl__label">{{ it.label }}</span>
-          <span class="tl__pct">{{ Math.round(it.pct) }}%</span>
+          <span class="tl__pct tabular">{{ it.pct.toFixed(1) }}%</span>
         </div>
         <div class="tl__track">
           <span class="tl__fill" :style="{ width: it.pct + '%' }" />
@@ -44,7 +44,7 @@ const CODES = ['DAY', 'WEEK', 'MONTH', 'YEAR']
   font-size: 0.6rem;
   letter-spacing: 1px;
   color: var(--accent-a);
-  width: 42px;
+  width: 44px;
   flex: none;
 }
 .tl__label {
@@ -57,20 +57,33 @@ const CODES = ['DAY', 'WEEK', 'MONTH', 'YEAR']
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: 0.68rem;
-  color: var(--text-dim);
+  color: var(--accent-a);
 }
 .tl__track {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.09);
+  height: 7px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
   /* 机甲能量格 */
   -webkit-mask: repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 11px);
   mask: repeating-linear-gradient(90deg, #000 0 8px, transparent 8px 11px);
 }
 .tl__fill {
+  position: relative;
   display: block;
   height: 100%;
   background: linear-gradient(90deg, var(--accent-a), var(--accent-b), var(--accent-c));
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-b) 60%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-b) 55%, transparent);
   transition: width 0.9s var(--ease-out);
+}
+.tl__fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #fff;
+  opacity: 0.85;
+  box-shadow: 0 0 8px #fff;
 }
 </style>

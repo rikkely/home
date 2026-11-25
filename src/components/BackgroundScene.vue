@@ -1,3 +1,9 @@
+<script>
+export function triggerNextBackground() {
+  window.dispatchEvent(new CustomEvent('aurora:next-bg'))
+}
+</script>
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import config from '../config.js'
@@ -71,7 +77,8 @@ function preloadThenSwitch(i) {
   img.src = scenes.value[i]
 }
 
-onMounted(() => {
+function startTimer() {
+  clearInterval(timer)
   const interval = config.background?.interval || 11000
   if (scenes.value.length > 1) {
     timer = setInterval(() => {
@@ -79,8 +86,23 @@ onMounted(() => {
       preloadThenSwitch(next)
     }, interval)
   }
+}
+
+function handleNextEvent() {
+  if (scenes.value.length <= 1) return
+  const next = (active.value + 1) % scenes.value.length
+  preloadThenSwitch(next)
+  startTimer()
+}
+
+onMounted(() => {
+  startTimer()
+  window.addEventListener('aurora:next-bg', handleNextEvent)
 })
-onUnmounted(() => clearInterval(timer))
+onUnmounted(() => {
+  clearInterval(timer)
+  window.removeEventListener('aurora:next-bg', handleNextEvent)
+})
 </script>
 
 <template>
@@ -198,17 +220,18 @@ onUnmounted(() => clearInterval(timer))
   position: absolute;
   inset: 0;
   background: radial-gradient(
-      120% 100% at 50% 30%,
-      transparent 40%,
-      rgba(0, 0, 0, 0.45) 100%
+      120% 100% at 50% 35%,
+      transparent 42%,
+      rgba(4, 7, 16, 0.42) 100%
     ),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35));
+    linear-gradient(180deg, rgba(4, 7, 16, 0.22), rgba(4, 7, 16, 0.34));
 }
 
 /* 极淡的 HUD 网格，向边缘淡出 */
 .bg__grid {
   position: absolute;
   inset: 0;
+  opacity: 0.75;
   background-image: linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
   background-size: 46px 46px;

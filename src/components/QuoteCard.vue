@@ -1,10 +1,31 @@
 <script setup>
+import { ref, onUnmounted } from 'vue'
 import HudModule from './HudModule.vue'
 import IconBase from './IconBase.vue'
 import { useHitokoto } from '../composables/useHitokoto.js'
 
 defineProps({ delay: { type: Number, default: 0 } })
 const { text, from, loading, refresh } = useHitokoto()
+
+const copied = ref(false)
+let copyTimer = null
+
+async function copyQuote() {
+  if (!text.value) return
+  const payload = from.value ? `${text.value} —— ${from.value}` : text.value
+  try {
+    await navigator.clipboard?.writeText(payload)
+    copied.value = true
+    clearTimeout(copyTimer)
+    copyTimer = setTimeout(() => {
+      copied.value = false
+    }, 1600)
+  } catch {
+    /* ignore clipboard failure */
+  }
+}
+
+onUnmounted(() => clearTimeout(copyTimer))
 </script>
 
 <template>
@@ -17,9 +38,26 @@ const { text, from, loading, refresh } = useHitokoto()
       <div class="tx__foot">
         <span class="tx__from" v-if="from">SRC // {{ from }}</span>
         <span v-else />
-        <button class="tx__refresh" :class="{ spin: loading }" title="换一句" @click="refresh">
-          <IconBase name="refresh" :size="15" />
-        </button>
+        <div class="tx__actions">
+          <button
+            class="tx__btn"
+            :class="{ 'is-ok': copied }"
+            :title="copied ? '已复制' : '复制语录'"
+            :aria-label="copied ? '已复制' : '复制语录'"
+            @click="copyQuote"
+          >
+            <IconBase :name="copied ? 'check' : 'copy'" :size="14" />
+          </button>
+          <button
+            class="tx__btn tx__refresh"
+            :class="{ spin: loading }"
+            title="换一句"
+            aria-label="换一句"
+            @click="refresh"
+          >
+            <IconBase name="refresh" :size="14" />
+          </button>
+        </div>
       </div>
     </div>
   </HudModule>
@@ -32,26 +70,28 @@ const { text, from, loading, refresh } = useHitokoto()
   gap: 12px;
 }
 .tx__text {
-  font-size: clamp(0.95rem, 1.5vw, 1.12rem);
-  line-height: 1.7;
+  font-size: clamp(0.95rem, 1.45vw, 1.1rem);
+  line-height: 1.75;
   font-weight: 500;
+  color: var(--text);
   transition: opacity 0.3s;
 }
 .tx__text.loading {
-  opacity: 0.5;
+  opacity: 0.48;
 }
 .tx__prompt {
   font-family: var(--font-mono);
   color: var(--accent-a);
   margin-right: 6px;
-  text-shadow: 0 0 8px var(--accent-a);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--accent-a) 65%, transparent);
 }
 .tx__cursor {
   display: inline-block;
-  width: 8px;
+  width: 7px;
   height: 1.05em;
-  margin-left: 4px;
+  margin-left: 5px;
   vertical-align: text-bottom;
+  border-radius: 1px;
   background: var(--accent-c);
   box-shadow: 0 0 8px var(--accent-c);
   animation: caret 1.1s steps(1) infinite;
@@ -65,23 +105,38 @@ const { text, from, loading, refresh } = useHitokoto()
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   letter-spacing: 1px;
   color: var(--text-dim);
 }
-.tx__refresh {
+.tx__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tx__btn {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   color: var(--text-soft);
-  transition: color 0.3s, background 0.3s, transform 0.5s var(--ease-out);
+  border: 1px solid transparent;
+  transition: color 0.25s, background 0.25s, border-color 0.25s, transform 0.45s var(--ease-out);
+}
+.tx__btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.tx__btn.is-ok {
+  color: var(--accent-a);
+  border-color: color-mix(in srgb, var(--accent-a) 35%, transparent);
+  background: color-mix(in srgb, var(--accent-a) 12%, transparent);
 }
 .tx__refresh:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
   transform: rotate(90deg);
 }
 .tx__refresh.spin :deep(.icon) {
